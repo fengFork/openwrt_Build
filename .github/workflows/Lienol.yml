@@ -4,7 +4,7 @@
 # Author: kenzo
 #=================================================
 
-name: Lienol_4.14内核
+name: Lienol_Main
 
 on:
   repository_dispatch:
@@ -55,8 +55,8 @@ jobs:
         
     - name: 克隆源代码
       env: 
-        REPO_URL: https://github.com/Lienol/openwrt
-        REPO_BRANCH: 19.07
+        REPO_URL: https://github.com/fengFork/Lienol-openwrt
+        REPO_BRANCH: main
       
       run: |
         git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
@@ -72,8 +72,8 @@ jobs:
     - name: 自定义安装源
       working-directory: ./openwrt
       run: |
-        git clone https://github.com/kenzok8/litte package/litte
-        git clone https://github.com/xiaorouji/openwrt-passwall package/passwall
+        git clone https://github.com/fengFork/litte package/litte
+        git clone https://github.com/fengFork/openwrt-passwall package/passwall
         
     - name: 自定义配置文件Lienol
       env:
@@ -96,11 +96,11 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
-    - name: 设置缓存
-      uses: klever1988/cachewrtbuild@main
-      with:
-        ccache: 'true'
-        prefix: ${{ github.workspace }}/openwrt
+#    - name: 设置缓存
+#      uses: klever1988/cachewrtbuild@main
+#      with:
+#        ccache: 'true'
+#        prefix: ${{ github.workspace }}/openwrt
 
     - name: 编译固件
       working-directory: ./openwrt
@@ -129,11 +129,11 @@ jobs:
         -or -name "*sysupgrade*" \
         -or -name "sha256sums" \
         | xargs -i mv -f {} ./firmware/
-        cp openwrt/.config  ./firmware/${{matrix.target}}.config
+        cp openwrt/.config  ./firmware/config
         cd firmware
         echo ${{ env.date4 }} > version.txt
         mv sha256sums ${{matrix.target}}_sha256sums
-        rename -v "s/^openwrt/${{ env.date3 }}-Lienol/" *
+        rename -v "s/^openwrt/Lienol-${{ env.date4 }}/" *
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
       
@@ -142,7 +142,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: ${{ env.date3 }} _Lienol
+        name: Lienol_${{ env.date4 }}
         path: ${{ env.FIRMWARE }}
 
     - name: 生成发布标签
@@ -162,22 +162,22 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
       with:
         files: "${{ env.FIRMWARE }}/*"
-        name: ${{ env.date2 }} ${{matrix.target}}
-        tag_name: ${{ env.date3 }}_${{matrix.target}}
+        name: Lienol_${{ env.date4 }}
+        tag_name: Lienol_${{ env.date4 }}
         body_path: release.txt
 
-    - name: 删除工作流
-      uses: GitRML/delete-workflow-runs@main
-      with:
-        retain_days: 3
-        keep_minimum_runs: 0
-
-    - name: 删除旧版本
-      uses: dev-drprasad/delete-older-releases@v0.1.0
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      with:
-        keep_latest: 2
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#    - name: 删除工作流
+#      uses: GitRML/delete-workflow-runs@main
+#      with:
+#        retain_days: 3
+#        keep_minimum_runs: 0
+#
+#    - name: 删除旧版本
+#      uses: dev-drprasad/delete-older-releases@v0.1.0
+#      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+#      with:
+#        keep_latest: 2
+#        delete_tags: true
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
