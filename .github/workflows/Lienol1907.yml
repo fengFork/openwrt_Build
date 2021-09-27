@@ -4,7 +4,7 @@
 # Author: kenzo
 #=================================================
 
-name: Lienol_Main
+name: Lienol_19.07
 
 on:
   repository_dispatch:
@@ -56,7 +56,7 @@ jobs:
     - name: 克隆源代码
       env: 
         REPO_URL: https://github.com/fengFork/Lienol-openwrt
-        REPO_BRANCH: main
+        REPO_BRANCH: 19.07
       
       run: |
         git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
@@ -133,7 +133,7 @@ jobs:
         cd firmware
         echo ${{ env.date4 }} > version.txt
         mv sha256sums ${{matrix.target}}_sha256sums
-        rename -v "s/^openwrt/Lienol-${{ env.date4 }}/" *
+        rename -v "s/^openwrt/Lienol1907-${{ env.date4 }}/" *
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
       
@@ -142,7 +142,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: Lienol_${{ env.date4 }}
+        name: Lienol1907_${{ env.date4 }}
         path: ${{ env.FIRMWARE }}
 
     - name: 生成发布标签
@@ -162,8 +162,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
       with:
         files: "${{ env.FIRMWARE }}/*"
-        name: Lienol_${{ env.date4 }}
-        tag_name: Lienol_${{ env.date4 }}
+        name: Lienol1907_${{ env.date4 }}
+        tag_name: Lienol1907_${{ env.date4 }}
         body_path: release.txt
 
 #    - name: 删除工作流
